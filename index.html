@@ -1558,6 +1558,58 @@
                 }
             });
         });
+        
+        // Form submission with instant notification
+        document.querySelector('.contact-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn.textContent;
+            
+            // Show loading state
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                // Send to n8n webhook for instant notification
+                const webhookUrl = 'https://auto.rftmedia.net/webhook/rft-website-lead';
+                
+                // Also send to Formspree as backup
+                const formspreeUrl = 'https://formspree.io/f/xgegwjnq';
+                
+                await Promise.all([
+                    fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    }).catch(() => {}), // Don't fail if webhook is down
+                    fetch(formspreeUrl, {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: formData
+                    })
+                ]);
+                
+                // Show success message
+                form.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" style="margin-bottom: 16px;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="9 12 11.5 14.5 15 10"></polyline>
+                        </svg>
+                        <h3 style="color: #0f172a; margin-bottom: 8px;">Thank You!</h3>
+                        <p style="color: #64748b;">We'll be in touch within 2 hours to schedule your free consultation.</p>
+                    </div>
+                `;
+            } catch (error) {
+                btn.disabled = false;
+                btn.textContent = originalText;
+                alert('Something went wrong. Please email us directly at websites@rftmedia.com');
+            }
+        });
     </script>
 </body>
 </html>
