@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rftxcom.github.io/rft-premium-websites/sitemap.xml
